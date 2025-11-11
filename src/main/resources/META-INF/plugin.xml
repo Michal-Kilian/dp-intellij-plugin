@@ -1,0 +1,62 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+  <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+  <id>sk.fiit.dp.dp-intellij-plugin</id>
+
+  <!-- Public plugin name should be written in Title Case.
+       Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+  <name>Communicator for AR Visualization App</name>
+
+  <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+  <vendor email="xkilian@stuba.sk">STU FIIT</vendor>
+
+  <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+       Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+       Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+  <description><![CDATA[
+    Plugin for IntelliJ IDEA to communicate with a Unity AR Visualization Application.
+  ]]></description>
+
+  <!-- Product and plugin compatibility requirements.
+       Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.java</depends>
+  <depends>org.jetbrains.kotlin</depends>
+
+  <!-- Extension points defined by the plugin.
+       Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+  <extensions defaultExtensionNs="com.intellij">
+    <backgroundPostStartupActivity
+      implementation="sk.fiit.dp.dpintellijplugin.services.ProjectStartupActivity"
+    />
+
+    <notificationGroup
+        id="dp-intellij-plugin"
+        displayType="BALLOON"
+    />
+  </extensions>
+
+  <actions>
+    <action
+      id="sk.fiit.dp.dpintellijplugin.actions.GenerateCityAction"
+      class="sk.fiit.dp.dpintellijplugin.actions.GenerateCityAction"
+      text="Generate City"
+      description="Send the current project structure to Unity for city generation"
+      icon="AllIcons.Toolwindows.ToolWindowInternal"
+    >
+      <add-to-group group-id="ToolsMenu" anchor="last" />
+      <add-to-group group-id="MainToolbarRight" anchor="last" />
+    </action>
+
+    <action
+      id="sk.fiit.dp.dpintellijplugin.actions.ToggleExecutionStreamAction"
+      class="sk.fiit.dp.dpintellijplugin.actions.ToggleExecutionStreamAction"
+      text="Pause Execution Stream"
+      description="Pause or resume execution sample stream to Unity"
+      icon="AllIcons.Actions.Pause"
+    >
+      <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="sk.fiit.dp.dpintellijplugin.actions.GenerateCityAction" />
+      <add-to-group group-id="MainToolbarRight" anchor="after" relative-to-action="sk.fiit.dp.dpintellijplugin.actions.GenerateCityAction" />
+    </action>
+  </actions>
+</idea-plugin>
