@@ -9,6 +9,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import sk.fiit.dp.dpintellijplugin.communication.WebSocketServerService
 import sk.fiit.dp.dpintellijplugin.data.project.CommandType
 import sk.fiit.dp.dpintellijplugin.listeners.ExecutionState
+import sk.fiit.dp.dpintellijplugin.services.NotificationService
 
 class ToggleExecutionStreamAction : AnAction() {
 
@@ -21,18 +22,12 @@ class ToggleExecutionStreamAction : AnAction() {
             ws.sendCommand(CommandType.PAUSE, "User paused live profiling")
             e.presentation.text = "Resume Execution Stream"
             e.presentation.icon = Actions.Resume
-            NotificationGroupManager.getInstance()
-                .getNotificationGroup("dp-intellij-plugin")
-                .createNotification("Pausing execution samples", NotificationType.INFORMATION)
-                .notify(e.project)
+            NotificationService.getInstance().show("Pausing execution samples")
         } else {
             ws.sendCommand(CommandType.RESUME)
             e.presentation.text = "Pause Execution Stream"
             e.presentation.icon = Actions.Pause
-            NotificationGroupManager.getInstance()
-                .getNotificationGroup("dp-intellij-plugin")
-                .createNotification("Resuming execution samples", NotificationType.INFORMATION)
-                .notify(e.project)
+            NotificationService.getInstance().show("Resuming execution samples")
         }
     }
 

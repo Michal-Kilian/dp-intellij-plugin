@@ -1,6 +1,7 @@
 package sk.fiit.dp.dpintellijplugin.communication
 
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import org.java_websocket.WebSocket
@@ -60,7 +61,7 @@ class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)) {
 
     override fun onMessage(conn: WebSocket, message: String) {
         println("From Unity: $message")
-        handleIncomingMessage(conn, message)
+        handleIncomingMessage(message)
     }
 
     override fun onError(conn: WebSocket?, ex: Exception) {
@@ -78,14 +79,39 @@ class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)) {
         broadcast(json)
     }
 
-    private fun handleIncomingMessage(conn: WebSocket, raw: String) {
+    private fun handleIncomingMessage(raw: String) {
         try {
             val envelope = gson.fromJson(raw, WebSocketMessage::class.java)
             when (envelope.type) {
-                MessageType.COMMAND -> println("Unity command: ${envelope.data}")
                 MessageType.REQUEST_PROJECT_STRUCTURE -> {
                     println("Unity requested updated project structure.")
                     sendProjectStructure()
+                }
+                MessageType.COMMAND -> {
+                    val messageType = object : TypeToken<WebSocketMessage<CommandMessage>>() {}.type
+                    val fullMessage: WebSocketMessage<CommandMessage> = gson.fromJson(raw, messageType)
+                    val commandMessage = fullMessage.data
+                    when (commandMessage.command){
+                        CommandType.OPEN_IN_IDE -> {
+                            println("Unity requested opening a method in IDE: ${commandMessage.path}")
+                            val project = ProjectReferenceHolder.currentProject
+                            if (project == null) {
+                                println("No project loaded. Cannot open file.")
+                                return
+                            }
+                            val path = commandMessage.path ?: run {
+                                println("No path provided.")
+                                return
+                            }
+                            val line = commandMessage.line ?: 0
+                            val openTabService = OpenTabService.getInstance(project)
+                            openTabService.openTab(
+                                path = path,
+                                line = line
+                            )
+                        }
+                        else -> { }
+                    }
                 }
                 else -> println("Unknown message type from Unity: ${envelope.type}")
             }
@@ -135,6 +161,8 @@ class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)) {
         val message = CommandMessage(
             command = type,
             reason = reason,
+            path = null,
+            line = null,
         )
         sendMessage(MessageType.COMMAND, message)
         println("Sent command: ${type.name} (${reason ?: "-"})")

@@ -45,6 +45,9 @@ data class MethodNode(
     val annotations: List<String>,
     val modifiers: List<String>,
     val lineCount: Int,
+    val path: String,
+    val lineStart: Int? = null,
+    val lineEnd: Int? = null,
 )
 
 data class FieldNode(

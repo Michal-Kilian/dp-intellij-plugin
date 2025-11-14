@@ -41,7 +41,7 @@ class ProjectStructureCollector(private val project: Project) {
     private fun parseJavaFile(file: PsiJavaFile): FileNode {
         val importCount = file.importList?.allImportStatements?.size ?: 0
         val lineCount = file.text.lines().size
-        val classes = file.classes.map { parseClass(it) }
+        val classes = file.classes.map { parseClass(it, file.virtualFile.path) }
         return FileNode(
             name = file.name,
             path = file.virtualFile.path,
@@ -52,10 +52,10 @@ class ProjectStructureCollector(private val project: Project) {
         )
     }
 
-    private fun parseClass(cls: PsiClass): ClassNode {
-        val methods = cls.methods.map { parseMethod(it) }
+    private fun parseClass(cls: PsiClass, path: String): ClassNode {
+        val methods = cls.methods.map { parseMethod(it, path) }
         val fields = cls.fields.map { parseField(it) }
-        val innerClasses = cls.innerClasses.map { parseClass(it) }
+        val innerClasses = cls.innerClasses.map { parseClass(it, path) }
         val modifiers = cls.modifierList?.text?.split("\\s+".toRegex())?.filter { it.isNotBlank() } ?: emptyList()
         val (start, end) = getLineRange(cls)
 
@@ -75,7 +75,7 @@ class ProjectStructureCollector(private val project: Project) {
         )
     }
 
-    private fun parseMethod(m: PsiMethod): MethodNode {
+    private fun parseMethod(m: PsiMethod, path: String): MethodNode {
         val (start, end) = getLineRange(m)
         return MethodNode(
             name = m.name,
@@ -83,7 +83,10 @@ class ProjectStructureCollector(private val project: Project) {
             parameters = m.parameterList.parameters.map { it.type.presentableText },
             annotations = m.annotations.mapNotNull { it.qualifiedName },
             modifiers = m.modifierList.text.split("\\s+".toRegex()).filter { it.isNotBlank() },
-            lineCount = end - start + 1
+            lineCount = end - start + 1,
+            path = path,
+            lineStart = start,
+            lineEnd = end,
         )
     }
 

@@ -8,9 +8,14 @@ enum class CommandType {
 
     @SerializedName("resume")
     RESUME,
+
+    @SerializedName("openInIDE")
+    OPEN_IN_IDE,
 }
 
 data class CommandMessage(
     val command: CommandType,
     val reason: String? = null,
+    val path: String? = null,
+    val line: Int? = null,
 )
