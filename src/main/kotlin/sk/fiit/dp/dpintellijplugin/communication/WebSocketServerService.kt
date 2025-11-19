@@ -15,7 +15,10 @@ import sk.fiit.dp.dpintellijplugin.data.ws.MessageType
 import sk.fiit.dp.dpintellijplugin.data.ws.WebSocketMessage
 import sk.fiit.dp.dpintellijplugin.services.OpenTabService
 import sk.fiit.dp.dpintellijplugin.services.ProjectReferenceHolder
+import java.io.ByteArrayOutputStream
 import java.net.InetSocketAddress
+import java.util.Base64
+import java.util.zip.GZIPOutputStream
 
 @Service(Service.Level.APP)
 class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)) {
@@ -75,6 +78,7 @@ class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)) {
             data = payload,
         )
         val json = gson.toJson(msg)
+        // println("[Server] Outgoing JSON length: ${json.toByteArray(Charsets.UTF_8).size} bytes")
         // println("Broadcast -> $json")
         broadcast(json)
     }
@@ -166,6 +170,12 @@ class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)) {
         )
         sendMessage(MessageType.COMMAND, message)
         println("Sent command: ${type.name} (${reason ?: "-"})")
+    }
+
+    private fun compressToBase64(input: String): String {
+        val byteOut = ByteArrayOutputStream()
+        GZIPOutputStream(byteOut).bufferedWriter(Charsets.UTF_8).use { it.write(input) }
+        return Base64.getEncoder().encodeToString(byteOut.toByteArray())
     }
 
     companion object {

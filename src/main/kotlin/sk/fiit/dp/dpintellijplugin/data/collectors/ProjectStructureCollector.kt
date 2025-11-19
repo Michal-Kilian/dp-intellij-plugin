@@ -1,5 +1,7 @@
 package sk.fiit.dp.dpintellijplugin.data.collectors
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -8,13 +10,19 @@ import com.intellij.psi.*
 import sk.fiit.dp.dpintellijplugin.data.project.*
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
+import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class ProjectStructureCollector(private val project: Project) {
 
     fun collect(): ProjectStructure = ApplicationManager.getApplication()
         .runReadAction<ProjectStructure> {
             val flatPackages = collectFlat()
-            ProjectStructure(projectName = project.name, packages = buildHierarchy(flatPackages))
+            val structure = ProjectStructure(projectName = project.name, packages = buildHierarchy(flatPackages))
+            dumpStructureToFile(structure)
+
+            structure
         }
 
     private fun collectFlat(): List<PackageNode> {
@@ -134,4 +142,22 @@ class ProjectStructureCollector(private val project: Project) {
         val allChildren = packageMap.values.flatMap { it.subPackages }
         return packageMap.values.filterNot { it in allChildren }
     }
+
+    private fun dumpStructureToFile(structure: ProjectStructure) {
+        try {
+            val baseDir = project.basePath ?: return
+            val dumpDir = File(baseDir, "structure-dump")
+            if (!dumpDir.exists()) dumpDir.mkdirs()
+            val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd__HHmmss"))
+            val dumpFile = File(dumpDir, "structure_$timestamp.txt")
+            val json = Gson().toJson(structure)
+            dumpFile.writeText(json)
+        } catch (_: Exception) { }
+    }
+}
+
+object JsonUtil {
+    private val gson = GsonBuilder().setPrettyPrinting().create()
+
+    fun pretty(any: Any): String = gson.toJson(any)
 }
