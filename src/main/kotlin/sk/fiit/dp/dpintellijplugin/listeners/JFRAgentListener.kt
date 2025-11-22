@@ -6,10 +6,14 @@ import com.sun.tools.attach.VirtualMachine
 import kotlinx.coroutines.*
 import sk.fiit.dp.dpintellijplugin.communication.WebSocketServerService
 import sk.fiit.dp.dpintellijplugin.data.project.ExecutionSample
+import sk.fiit.dp.dpintellijplugin.data.project.ProjectStructure
 import sk.fiit.dp.dpintellijplugin.data.ws.MessageType
 import java.io.BufferedReader
+import java.io.File
 import java.net.ServerSocket
 import java.nio.file.Path
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class JFRAgentListener(
@@ -38,9 +42,9 @@ class JFRAgentListener(
             reader.forEachLine { line ->
                 try {
                     val sample = gson.fromJson(line, ExecutionSample::class.java)
-                    println(sample)
                     if (!WebSocketServerService.getInstance().executionSamplePaused())
                         WebSocketServerService.getInstance().sendMessage(MessageType.EXECUTION_SAMPLE, sample)
+                    dumpSampleToFile(sample)
                 } catch (ex: java.net.SocketException) {
                     println("[Plugin] Agent socket closed: ${ex.message}")
                     return@forEachLine
@@ -51,6 +55,18 @@ class JFRAgentListener(
 
             println("[Plugin] Agent connection closed")
         }
+    }
+
+    private fun dumpSampleToFile(sample: ExecutionSample) {
+        try {
+            val baseDir = project.basePath ?: return
+            val dumpDir = File(baseDir, "sample-dump")
+            if (!dumpDir.exists()) dumpDir.mkdirs()
+            val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd__HHmmss"))
+            val dumpFile = File(dumpDir, "sample_$timestamp.txt")
+            val json = Gson().toJson(sample)
+            dumpFile.writeText(json)
+        } catch (_: Exception) { }
     }
 
     fun stop() {

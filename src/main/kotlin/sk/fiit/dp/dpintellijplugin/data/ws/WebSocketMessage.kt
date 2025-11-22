@@ -30,6 +30,4 @@ data class WebSocketMessage<T>(
     val source: String,
     val timestamp: Long = System.currentTimeMillis(),
     val data: T,
-    //val compressed: Boolean = false,
-    //val compressedData: String? = null,
 )

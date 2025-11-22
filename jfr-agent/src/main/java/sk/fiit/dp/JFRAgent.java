@@ -1,7 +1,6 @@
 package sk.fiit.dp;
 
 import com.google.gson.Gson;
-import jdk.jfr.consumer.RecordedThread;
 import jdk.jfr.consumer.RecordingStream;
 import sk.fiit.dp.model.ExecutionSample;
 
