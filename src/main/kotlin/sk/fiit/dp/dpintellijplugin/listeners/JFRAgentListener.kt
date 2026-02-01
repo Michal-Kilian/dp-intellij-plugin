@@ -44,7 +44,7 @@ class JFRAgentListener(
                     val sample = gson.fromJson(line, ExecutionSample::class.java)
                     if (!WebSocketServerService.getInstance().executionSamplePaused())
                         WebSocketServerService.getInstance().sendMessage(MessageType.EXECUTION_SAMPLE, sample)
-                    dumpSampleToFile(sample)
+                    //dumpSampleToFile(sample)
                 } catch (ex: java.net.SocketException) {
                     println("[Plugin] Agent socket closed: ${ex.message}")
                     return@forEachLine

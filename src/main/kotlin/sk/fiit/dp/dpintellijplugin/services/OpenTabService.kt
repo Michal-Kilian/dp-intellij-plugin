@@ -9,8 +9,6 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import kotlinx.html.dom.document
-import sk.fiit.dp.dpintellijplugin.communication.WebSocketServerService
 import sk.fiit.dp.dpintellijplugin.data.project.OpenTabs
 
 @Service(Service.Level.PROJECT)

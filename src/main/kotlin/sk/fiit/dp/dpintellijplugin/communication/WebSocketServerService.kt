@@ -2,11 +2,13 @@ package sk.fiit.dp.dpintellijplugin.communication
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
+import org.java_websocket.framing.CloseFrame
 import sk.fiit.dp.dpintellijplugin.data.collectors.ProjectSnapshotCollector
 import sk.fiit.dp.dpintellijplugin.data.collectors.ProjectStructureCollector
 import sk.fiit.dp.dpintellijplugin.data.project.CommandMessage
@@ -18,15 +20,18 @@ import sk.fiit.dp.dpintellijplugin.services.ProjectReferenceHolder
 import java.io.ByteArrayOutputStream
 import java.net.InetSocketAddress
 import java.util.Base64
+import java.util.Collections
 import java.util.zip.GZIPOutputStream
 
 @Service(Service.Level.APP)
-class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)) {
+class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)), Disposable {
 
-    private val gson = Gson();
-    private val connections = mutableSetOf<WebSocket>()
+    private val gson = Gson()
+    private val connections = Collections.synchronizedSet(mutableSetOf<WebSocket>())
     @Volatile private var started = false
     @Volatile private var executionSamplePaused = false
+
+    object EmptyPayload
 
     fun executionSamplePaused() = executionSamplePaused
 
@@ -87,6 +92,9 @@ class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)) {
         try {
             val envelope = gson.fromJson(raw, WebSocketMessage::class.java)
             when (envelope.type) {
+                MessageType.PING -> {
+                    sendMessage(MessageType.PONG, EmptyPayload)
+                }
                 MessageType.REQUEST_PROJECT_STRUCTURE -> {
                     println("Unity requested updated project structure.")
                     sendProjectStructure()
@@ -176,6 +184,29 @@ class WebSocketServerService() : WebSocketServer(InetSocketAddress(8765)) {
         val byteOut = ByteArrayOutputStream()
         GZIPOutputStream(byteOut).bufferedWriter(Charsets.UTF_8).use { it.write(input) }
         return Base64.getEncoder().encodeToString(byteOut.toByteArray())
+    }
+
+    private fun shutdownServer() {
+        println("Shutting down WebSocket server")
+
+        connections.forEach { conn ->
+            try {
+                conn.close(
+                    CloseFrame.NORMAL,
+                    "IDE shutting down"
+                )
+            } catch (_: Throwable) {}
+        }
+
+        connections.clear()
+
+        try {
+            stop()
+        } catch (_: Throwable) {}
+    }
+
+    override fun dispose() {
+        shutdownServer()
     }
 
     companion object {

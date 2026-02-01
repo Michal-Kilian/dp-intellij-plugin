@@ -23,6 +23,12 @@ enum class MessageType {
 
     @SerializedName("requestProjectStructure")
     REQUEST_PROJECT_STRUCTURE,
+
+    @SerializedName("ping")
+    PING,
+
+    @SerializedName("pong")
+    PONG,
 }
 
 data class WebSocketMessage<T>(
