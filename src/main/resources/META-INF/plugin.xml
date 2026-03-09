@@ -58,5 +58,15 @@
       <add-to-group group-id="ToolsMenu" anchor="after" relative-to-action="sk.fiit.dp.dpintellijplugin.actions.GenerateCityAction" />
       <add-to-group group-id="MainToolbarRight" anchor="after" relative-to-action="sk.fiit.dp.dpintellijplugin.actions.GenerateCityAction" />
     </action>
+
+    <action
+      id="sk.fiit.dp.dpintellijplugin.actions.ExportInteractionCountsAction"
+      class="sk.fiit.dp.dpintellijplugin.actions.ExportInteractionCountsAction"
+      text="Export Interaction Counts"
+      description="Export click and keypress counts for this session"
+      icon="AllIcons.Actions.AddFile"
+    >
+      <add-to-group group-id="ToolsMenu" anchor="last" />
+    </action>
   </actions>
 </idea-plugin>

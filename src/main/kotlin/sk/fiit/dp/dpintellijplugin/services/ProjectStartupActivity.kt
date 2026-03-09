@@ -2,6 +2,7 @@ package sk.fiit.dp.dpintellijplugin.services
 import com.intellij.ProjectTopics
 import com.intellij.execution.ExecutionManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
@@ -22,6 +23,9 @@ class ProjectStartupActivity : ProjectActivity {
         server.ensureStarted()
 
         subscribeToUpdates(project)
+
+        // Initialize Interaction Counter Service
+        InteractionCounterService.getInstance()
     }
 
     private fun subscribeToUpdates(project: Project) {
